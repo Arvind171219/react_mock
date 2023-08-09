@@ -1,11 +1,21 @@
-import React from 'react'
-import Counter from './Counter'
-import './Style.css';
+import React, { useState } from 'react';
+import ContactForm from './ContactForm';
+import ContactList from './ContactList';
 
-export default function App() {
+function App() {
+  const [contacts, setContacts] = useState([]);
+
+  const addContact = (contact) => {
+    setContacts([...contacts, contact]);
+  };
+
   return (
-    <div className='App'>
-      <Counter/>
+    <div className="App">
+      <h1>PhoneBook App</h1>
+      <ContactForm addContact={addContact} />
+      <ContactList contacts={contacts} />
     </div>
-  )
+  );
 }
+
+export default App;
