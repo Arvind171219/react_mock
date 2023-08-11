@@ -1,80 +1,55 @@
-import { useReducer } from 'react';
-import AddTask from './AddTask.js';
-import TaskList from './TaskList.js';
+import React, { useState, useEffect } from 'react';
 
-function tasksReducer(tasks, action) {
-  switch (action.type) {
-    case 'added': {
-      return [...tasks, {
-        id: action.id,
-        text: action.text,
-        done: false
-      }];
+function App() {
+  const [country, setCountry] = useState('India');
+  const [data, setData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCovidData(country);
+  }, [country]);
+
+  const fetchCovidData = async (country) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`https://disease.sh/v3/covid-19/countries/${country}`);
+      const jsonData = await response.json();
+      setData(jsonData);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setIsLoading(false);
     }
-    case 'changed': {
-      return tasks.map(t => {
-        if (t.id === action.task.id) {
-          return action.task;
-        } else {
-          return t;
-        }
-      });
-    }
-    case 'deleted': {
-      return tasks.filter(t => t.id !== action.id);
-    }
-    default: {
-      throw Error('Unknown action: ' + action.type);
-    }
-  }
-}
+  };
 
-export default function TaskApp() {
-  const [tasks, dispatch] = useReducer(
-    tasksReducer,
-    initialTasks
-  );
-
-  function handleAddTask(text) {
-    dispatch({
-      type: 'added',
-      id: nextId++,
-      text: text,
-    });
-  }
-
-  function handleChangeTask(task) {
-    dispatch({
-      type: 'changed',
-      task: task
-    });
-  }
-
-  function handleDeleteTask(taskId) {
-    dispatch({
-      type: 'deleted',
-      id: taskId
-    });
-  }
+  const handleSearch = () => {
+    fetchCovidData(country);
+  };
 
   return (
-    <>
-      <h1>Prague itinerary</h1>
-      <AddTask
-        onAddTask={handleAddTask}
-      />
-      <TaskList
-        tasks={tasks}
-        onChangeTask={handleChangeTask}
-        onDeleteTask={handleDeleteTask}
-      />
-    </>
+    <div className="App">
+      <h1>COVID-19 Tracker</h1>
+      <div>
+        <input
+          type="text"
+          placeholder="Enter country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+        />
+        <button onClick={handleSearch}>Search</button>
+      </div>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <div>
+          <h2>{data.country}</h2>
+          <p>Cases: {data.cases}</p>
+          <p>Deaths: {data.deaths}</p>
+          <p>Recovered: {data.recovered}</p>
+        </div>
+      )}
+    </div>
   );
 }
 
-let nextId = 3;
-const initialTasks = [
-  { id: 0, text: 'Visit Kafka Museum', done: true },
-  { id: 1, text: 'Watch a puppet show', done: false },
-  { id: 2, text: 'Lennon Wall pic', done: false }
-];
+export default App;
